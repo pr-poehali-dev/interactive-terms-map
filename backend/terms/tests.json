@@ -1,0 +1,42 @@
+{
+  "tests": [
+    {
+      "name": "Get all terms",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 200,
+      "expectedBody": [
+        {
+          "id": "number",
+          "term": "string",
+          "definition": "string"
+        }
+      ],
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Search terms by keyword",
+      "method": "GET",
+      "path": "/?search=JavaScript",
+      "expectedStatus": 200,
+      "expectedBody": [
+        {
+          "term": "string"
+        }
+      ],
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Filter by category",
+      "method": "GET",
+      "path": "/?category=Программирование",
+      "expectedStatus": 200,
+      "expectedBody": [
+        {
+          "category": "string"
+        }
+      ],
+      "bodyMatcher": "partial"
+    }
+  ]
+}
