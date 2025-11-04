@@ -38,8 +38,10 @@ const Home = () => {
   const [filteredTerms, setFilteredTerms] = useState<Term[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedNormative, setSelectedNormative] = useState('all');
   const [selectedLetter, setSelectedLetter] = useState('');
   const [categories, setCategories] = useState<string[]>([]);
+  const [normativeSources, setNormativeSources] = useState<string[]>([]);
   const [selectedTerm, setSelectedTerm] = useState<Term | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedForComparison, setSelectedForComparison] = useState<number[]>([]);
@@ -50,7 +52,7 @@ const Home = () => {
 
   useEffect(() => {
     filterTerms();
-  }, [terms, searchQuery, selectedCategory, selectedLetter]);
+  }, [terms, searchQuery, selectedCategory, selectedNormative, selectedLetter]);
 
   const fetchTerms = async () => {
     const response = await fetch('https://functions.poehali.dev/3cefa232-faf3-4f6c-8625-37099407afa2');
@@ -59,6 +61,9 @@ const Home = () => {
     
     const uniqueCategories = Array.from(new Set(data.map((t: Term) => t.category)));
     setCategories(uniqueCategories as string[]);
+    
+    const uniqueNormatives = Array.from(new Set(data.map((t: Term) => t.normative_source).filter(Boolean)));
+    setNormativeSources(uniqueNormatives as string[]);
   };
 
   const filterTerms = () => {
@@ -74,6 +79,10 @@ const Home = () => {
 
     if (selectedCategory !== 'all') {
       filtered = filtered.filter((term) => term.category === selectedCategory);
+    }
+    
+    if (selectedNormative !== 'all') {
+      filtered = filtered.filter((term) => term.normative_source === selectedNormative);
     }
 
     if (selectedLetter) {
@@ -143,7 +152,7 @@ const Home = () => {
             </div>
             
             <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-              <SelectTrigger className="w-full md:w-64 h-12">
+              <SelectTrigger className="w-full md:w-56 h-12">
                 <SelectValue placeholder="Все категории" />
               </SelectTrigger>
               <SelectContent>
@@ -151,6 +160,20 @@ const Home = () => {
                 {categories.map((category) => (
                   <SelectItem key={category} value={category}>
                     {category}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            
+            <Select value={selectedNormative} onValueChange={setSelectedNormative}>
+              <SelectTrigger className="w-full md:w-80 h-12">
+                <SelectValue placeholder="Все нормативные акты" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Все нормативные акты</SelectItem>
+                {normativeSources.map((source) => (
+                  <SelectItem key={source} value={source}>
+                    {source}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -183,15 +206,25 @@ const Home = () => {
           </div>
         </div>
 
-        <div className="mb-6 flex items-center justify-between">
+        <div className="mb-6 flex items-center justify-between flex-wrap gap-4">
           <p className="text-sm text-muted-foreground">
             Найдено терминов: <span className="font-semibold text-foreground">{filteredTerms.length}</span>
           </p>
           {selectedForComparison.length > 0 && (
-            <Badge variant="secondary" className="gap-2">
-              <Icon name="GitCompare" size={16} />
-              Выбрано для сравнения: {selectedForComparison.length}
-            </Badge>
+            <div className="flex items-center gap-2">
+              <Badge variant="secondary" className="gap-2">
+                <Icon name="GitCompare" size={16} />
+                Выбрано для сравнения: {selectedForComparison.length}
+              </Badge>
+              <Button
+                onClick={() => window.location.href = `/compare?ids=${selectedForComparison.join(',')}`}
+                size="sm"
+                className="gap-2"
+              >
+                <Icon name="ArrowRight" size={16} />
+                Сравнить
+              </Button>
+            </div>
           )}
         </div>
 
