@@ -73,32 +73,23 @@ const Map = () => {
       fullData: term,
     }));
 
-    const existingIds = new Set(terms.map(t => t.id));
-    
     const links: Link[] = [];
     terms.forEach((term) => {
       if (term.related_terms) {
         term.related_terms.forEach((targetId) => {
-          if (existingIds.has(targetId)) {
-            links.push({
-              source: term.id,
-              target: targetId,
-            });
-          }
+          links.push({
+            source: term.id,
+            target: targetId,
+          });
         });
       }
     });
 
-    const nodeRadius = 40;
-    const padding = nodeRadius + 10;
-    
     const simulation = d3.forceSimulation(nodes)
-      .force('link', d3.forceLink(links).id((d: any) => d.id).distance(150))
-      .force('charge', d3.forceManyBody().strength(-500))
+      .force('link', d3.forceLink(links).id((d: any) => d.id).distance(120))
+      .force('charge', d3.forceManyBody().strength(-400))
       .force('center', d3.forceCenter(width / 2, height / 2))
-      .force('collision', d3.forceCollide().radius(nodeRadius + 10))
-      .force('x', d3.forceX(width / 2).strength(0.05))
-      .force('y', d3.forceY(height / 2).strength(0.05));
+      .force('collision', d3.forceCollide().radius(50));
 
     const defs = svg.append('defs');
     const filter = defs.append('filter')
@@ -139,8 +130,8 @@ const Map = () => {
           d.fy = d.y;
         })
         .on('drag', (event, d) => {
-          d.fx = Math.max(padding, Math.min(width - padding, event.x));
-          d.fy = Math.max(padding, Math.min(height - padding, event.y));
+          d.fx = event.x;
+          d.fy = event.y;
         })
         .on('end', (event, d) => {
           if (!event.active) simulation.alphaTarget(0);
@@ -149,7 +140,7 @@ const Map = () => {
         }));
 
     const circles = node.append('circle')
-      .attr('r', nodeRadius)
+      .attr('r', 30)
       .attr('fill', '#0EA5E9')
       .attr('stroke', '#fff')
       .attr('stroke-width', 3)
@@ -158,52 +149,21 @@ const Map = () => {
       .style('transition', 'all 0.3s ease');
 
     const labels = node.append('text')
+      .text((d) => d.name)
       .attr('text-anchor', 'middle')
+      .attr('dy', '.35em')
       .attr('fill', 'white')
-      .style('font-size', '10px')
+      .style('font-size', '11px')
       .style('font-weight', '600')
       .style('pointer-events', 'none')
       .style('user-select', 'none');
-
-    labels.each(function(d) {
-      const text = d3.select(this);
-      const words = d.name.split(/\s+/);
-      const maxWidth = nodeRadius * 1.6;
-      
-      if (words.length > 1 || d.name.length > 8) {
-        text.text('');
-        let line: string[] = [];
-        let lineNumber = 0;
-        const lineHeight = 1.1;
-        const dy = 0;
-        
-        words.forEach((word, i) => {
-          line.push(word);
-          const testLine = line.join(' ');
-          
-          if (testLine.length > 9 || i === words.length - 1) {
-            const tspan = text.append('tspan')
-              .attr('x', 0)
-              .attr('dy', lineNumber === 0 ? dy + 'em' : lineHeight + 'em')
-              .text(testLine);
-            line = [];
-            lineNumber++;
-          }
-        });
-        
-        const totalLines = lineNumber;
-        text.attr('transform', `translate(0, ${-totalLines * 5})`);
-      } else {
-        text.text(d.name).attr('dy', '.35em');
-      }
-    });
 
     node.on('mouseenter', function (event, d) {
       if (!tooltipFixed) {
         d3.select(this).select('circle')
           .transition()
           .duration(200)
-          .attr('r', nodeRadius + 6)
+          .attr('r', 36)
           .attr('fill', '#0284c7');
       }
     });
@@ -213,7 +173,7 @@ const Map = () => {
         d3.select(this).select('circle')
           .transition()
           .duration(200)
-          .attr('r', nodeRadius)
+          .attr('r', 30)
           .attr('fill', '#0EA5E9');
       }
     });
@@ -225,22 +185,17 @@ const Map = () => {
       d3.selectAll('.nodes g circle')
         .transition()
         .duration(200)
-        .attr('r', nodeRadius)
+        .attr('r', 30)
         .attr('fill', '#0EA5E9');
 
       d3.select(this).select('circle')
         .transition()
         .duration(200)
-        .attr('r', nodeRadius + 6)
+        .attr('r', 36)
         .attr('fill', '#0284c7');
     });
 
     simulation.on('tick', () => {
-      nodes.forEach((d: any) => {
-        d.x = Math.max(padding, Math.min(width - padding, d.x));
-        d.y = Math.max(padding, Math.min(height - padding, d.y));
-      });
-      
       link
         .attr('x1', (d: any) => d.source.x)
         .attr('y1', (d: any) => d.source.y)
@@ -259,7 +214,7 @@ const Map = () => {
       d3.select(svgRef.current).selectAll('.nodes g circle')
         .transition()
         .duration(200)
-        .attr('r', 40)
+        .attr('r', 30)
         .attr('fill', '#0EA5E9');
     }
   };
