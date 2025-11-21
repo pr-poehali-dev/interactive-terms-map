@@ -73,14 +73,18 @@ const Map = () => {
       fullData: term,
     }));
 
+    const existingIds = new Set(terms.map(t => t.id));
+    
     const links: Link[] = [];
     terms.forEach((term) => {
       if (term.related_terms) {
         term.related_terms.forEach((targetId) => {
-          links.push({
-            source: term.id,
-            target: targetId,
-          });
+          if (existingIds.has(targetId)) {
+            links.push({
+              source: term.id,
+              target: targetId,
+            });
+          }
         });
       }
     });
